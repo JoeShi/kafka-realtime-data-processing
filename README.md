@@ -56,7 +56,7 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 
 **手动打数据**
 ```shell script
-./kafka-console-producer --broker-list 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic topicName
+./confluent-5.3.1/bin/kafka-console-producer --broker-list 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic topicName
 ```
 
 ## 如何使用 Kafka-connect-datagen 产生模拟数据
