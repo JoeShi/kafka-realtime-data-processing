@@ -44,6 +44,10 @@ Kafka_List = 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092
 Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 ```
 
+## Kafka 操作
+
+### 手动操作
+
 **创建 topic**
 ```shell script
 ./confluent-5.3.1/bin/kafka-topics --zookeeper 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181 --create --partitions 3 --replication-factor 2 --topic topicName 
@@ -51,7 +55,7 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 
 **消费 topic**
 ```shell script
-./confluent-5.3.1/bin/kafka-console-consumer --bootstrap-server 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic topicName
+./confluent-5.3.1/bin/kafka-console-consumer --bootstrap-server 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic orders
 ```
 
 **手动打数据**
@@ -59,9 +63,9 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 ./confluent-5.3.1/bin/kafka-console-producer --broker-list 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic topicName
 ```
 
-## 如何使用 Kafka-connect-datagen 产生模拟数据
+### 如何使用 Kafka-connect-datagen 产生模拟数据
 
-**AMI: ami-04eabc4c894294eb7**
+**AMI: ami-04eabc4c894294eb7**, 启动之后请增加 SG: sg-0215d847878dc26af, 和 IAM Role: S3-Connect-20191105014410665800000001
 
 [Kafka-connect-datagen](https://github.com/confluentinc/kafka-connect-datagen) 是 Kafka 的一个 connector, 
 可以用来产生模拟数据。
@@ -75,9 +79,9 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 ./confluent-5.3.1/bin/connect-standalone worker.properties orders.properties
 ```
 
-## 如何使用 Kinesis-kafka-connector 将数据注入 Kinesis
+### 如何使用 Kinesis-kafka-connector 将数据注入 Kinesis
 
-**AMI: ami-056bad4b853478d85**
+**AMI: ami-056bad4b853478d85**， 启动之后请增加 SG: sg-0215d847878dc26af, 和 IAM Role: S3-Connect-20191105014410665800000001
 
 [Kinesis-kafka-connector](https://github.com/awslabs/kinesis-kafka-connector) 可以用来将 Kafka 的数据打入到 Kinesis 中。
 
@@ -86,6 +90,14 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 执行以下脚本启动connect, **请务必使用 root 账号，`sudo su`**
 ```shell script
 ./confluent-5.3.1/bin/connect-standalone worker.properties kinesis.properties
+```
+
+
+## Kinesis 手动查看数据
+```shell script
+aws kinesis list-shards --stream-name shiheng-orders --profile shiheng
+SHARD_ITERATOR=$(aws kinesis get-shard-iterator --shard-id shardId-000000000000 --shard-iterator-type LATEST --stream-name shiheng-orders --query 'ShardIterator' --profile shiheng)
+aws kinesis get-records --profile shiheng --limit 10 --shard-iterator $SHARD_ITERATOR
 ```
 
 ## 编译 Kinesis-kafka-connector
