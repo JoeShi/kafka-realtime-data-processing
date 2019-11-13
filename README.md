@@ -109,6 +109,14 @@ aws kinesis get-records --profile shiheng --limit 10 --shard-iterator $SHARD_ITE
 cp kinesis-kafka-connector/target/amazon-kinesis-kafka-connector-0.0.9-SNAPSHOT.jar ./confluent-5.3.1/share/java/kafka/
 ```
 
+
+
+## KCL 代码消费落盘代码
+
+https://github.com/brianwwo/kclsample
+
+
+
 ## 参考资料
 
 https://github.com/confluentinc/avro-random-generator/blob/master/src/main/java/io/confluent/avro/random/generator/Generator.java
