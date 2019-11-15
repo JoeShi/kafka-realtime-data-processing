@@ -1,0 +1,11 @@
+[
+  {
+    "Classification": "hive-site",
+    "Properties": {
+      "javax.jdo.option.ConnectionURL": "jdbc:mysql://shiheng.cluster-ccydswq08f7k.rds.cn-northwest-1.amazonaws.com.cn:3306/hive?createDatabaseIfNotExist=true",
+      "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver",
+      "javax.jdo.option.ConnectionUserName": "root",
+      "javax.jdo.option.ConnectionPassword": "rootroot"
+    }
+  }
+]

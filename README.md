@@ -1,9 +1,5 @@
 # 食亨大数据项目 PoC
 
-如果发现暂时可以避开，但后续需要解决的问题，务必记录在 [Issues](https://github.com/JoeShi/shiheng/issues) 里面.
-
-项目 PoC 期间，使用 [Kanban](https://github.com/JoeShi/shiheng/projects/1) 来追踪项目进度。
-
 ## 场景描述及架构图
 
 ### 场景A
@@ -29,39 +25,16 @@
 
 ## TODO
 
-- [ ] KCL 消费 Kinesis 的数据，铺平并根据订单时间落盘到 S3
-- [ ] 通过 s3-dist-cp 将小文件合并成一个大文件
-- [ ] Kinesis 原始数据通过 Firehose 落盘到 S3
-- [ ] 然后通过 Spark 提取 S3 原始数据，根据订单时间落盘到 S3
-
-## 开发资源共享
-
-> p.s. 在没有任何特殊说明下都是运行在 /home/ec2-user 目录下
-
-以下是 Kafka 集群和 Zookeeper 集群的共享信息
-```
-Kafka_List = 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092
-Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
-```
-
-## Kafka 操作
-
-### 手动操作
-
-**创建 topic**
-```shell script
-./confluent-5.3.1/bin/kafka-topics --zookeeper 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181 --create --partitions 3 --replication-factor 2 --topic topicName 
-```
-
-**消费 topic**
-```shell script
-./confluent-5.3.1/bin/kafka-console-consumer --bootstrap-server 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic orders
-```
-
-**手动打数据**
-```shell script
-./confluent-5.3.1/bin/kafka-console-producer --broker-list 172.31.7.21:9092,172.31.31.118:9092,172.31.40.206:9092 --topic topicName
-```
+- [x] 构建 Kafka 和 Zookeeper 集群
+- [x] 构建 EMR 集群， HIVE metadata store 放置于 RDS Aurora
+- [x] Kafka 数据利用 Kafka Kinesis Connector 原样注入 Kinesis
+- [x] 利用 Kafka Datagen Connector 产生模拟数据打入 Kafka 集群 
+- [x] KCL 消费 Kinesis 的数据，铺平并根据订单时间落盘到 S3
+- [x] Sparking Streaming 消费 Kinesis 数据，铺平并根据订单时间落盘到 S3
+- [ ] 优雅地退出一个 Spark Streaming 的任务
+- [x] 通过 s3-dist-cp 将小文件合并成一个大文件
+- [x] Kinesis 原始数据通过 Firehose 落盘到 S3，保留原始数据
+- [x] Hive 创建表，分区
 
 ### 如何使用 Kafka-connect-datagen 产生模拟数据
 
@@ -92,7 +65,6 @@ Zookeeper_List = 172.31.8.225:2181,172.31.18.253:2181,172.31.47.133:2181
 ./confluent-5.3.1/bin/connect-standalone worker.properties kinesis.properties
 ```
 
-
 ## Kinesis 手动查看数据
 ```shell script
 aws kinesis list-shards --stream-name shiheng-orders --profile shiheng
@@ -109,19 +81,54 @@ aws kinesis get-records --profile shiheng --limit 10 --shard-iterator $SHARD_ITE
 cp kinesis-kafka-connector/target/amazon-kinesis-kafka-connector-0.0.9-SNAPSHOT.jar ./confluent-5.3.1/share/java/kafka/
 ```
 
+## EMR 操作指南
 
+### 通过 Shell 提交 spark streaming 任务
+
+和自建的 Spark 一样，可以通过 spark-submit 来提交任务
+
+```shell script
+spark-submit --packages org.apache.spark:spark-streaming-kinesis-asl_2.11:2.4.2 s3://shiheng-poc/scripts/spark-streaming-kinesis-python.py
+```
+
+### 通过 EMR Step 提交 spark streaming 任务
+在生产环境中，推荐使用 EMR Step 来提交任务，如下截图:
+
+![](assets/emr-step.png)
+
+
+### 利用 s3-dist-cp 进行小文件合并
+
+[S3DistCp (s3-dist-cp)](https://docs.aws.amazon.com/emr/latest/ReleaseGuide/UsingEMR_s3distcp.html) 是一个开源工具，
+争对 Amazon EMR 和 Amazon S3 进行了优化。可以实现文件的移动，或者将小文件合并成大文件。支持的场景丰富，常见用法可以
+查看[Seven Tips for Using S3DistCp](https://aws.amazon.com/blogs/big-data/seven-tips-for-using-s3distcp-on-amazon-emr-to-move-data-efficiently-between-hdfs-and-amazon-s3/).
+
+**合并文件，不删除**
+```shell script
+s3-dist-cp --src=s3://shiheng-poc/ss-kinesis-python/ordertime=2019111315/ \
+--dest=s3://shiheng-poc/merged/ordertime=2019111315/ \
+--groupBy='.*/(part)-.*\.csv' \
+--targetSize=100 \
+--outputManifest=processed-records.gz
+```
+
+**合并文件，成功后删除文件**
+```shell script
+s3-dist-cp --src=s3://shiheng-poc/ss-kinesis-python/ordertime=2019111316/ \
+--dest=s3://shiheng-poc/merged/ordertime=2019111316/ \
+--groupBy='.*/(part)-.*\.csv' \
+--targetSize=100 \
+--deleteOnSuccess \
+--outputManifest=processed-records.gz
+```
 
 ## KCL 代码消费落盘代码
 
-https://github.com/brianwwo/kclsample
-
+[brianwwo/kclsample](https://github.com/brianwwo/kclsample)
 
 
 ## 参考资料
 
-https://github.com/confluentinc/avro-random-generator/blob/master/src/main/java/io/confluent/avro/random/generator/Generator.java
-
-
-
 [Example AVRO schema file](https://github.com/confluentinc/kafka-connect-datagen/tree/master/src/main/resources)
 
+[How to do graceful shutdown of spark streaming job](https://medium.com/@manojkumardhakad/how-to-do-graceful-shutdown-of-spark-streaming-job-9c910770349c)
