@@ -2,10 +2,10 @@
   {
     "Classification": "hive-site",
     "Properties": {
-      "javax.jdo.option.ConnectionURL": "jdbc:mysql://shiheng.cluster-ccydswq08f7k.rds.cn-northwest-1.amazonaws.com.cn:3306/hive?createDatabaseIfNotExist=true",
+      "javax.jdo.option.ConnectionURL": "jdbc:mysql://joeshi.cluster-ccydswq08f7k.rds.cn-northwest-1.amazonaws.com.cn:3306/hive?createDatabaseIfNotExist=true",
       "javax.jdo.option.ConnectionDriverName": "org.mariadb.jdbc.Driver",
-      "javax.jdo.option.ConnectionUserName": "root",
-      "javax.jdo.option.ConnectionPassword": "rootroot"
+      "javax.jdo.option.ConnectionUserName": "<username>",
+      "javax.jdo.option.ConnectionPassword": "<password>"
     }
   },
   {
@@ -40,9 +40,9 @@
             "Classification": "database",
             "Properties": {
               "name": "huedb",
-              "user": "root",
-              "password": "rootroot",
-              "host": "shiheng.cluster-ccydswq08f7k.rds.cn-northwest-1.amazonaws.com.cn",
+              "user": "<username>",
+              "password": "<password>",
+              "host": "joeshi.cluster-ccydswq08f7k.rds.cn-northwest-1.amazonaws.com.cn",
               "port": "3306",
               "engine": "mysql"
             },

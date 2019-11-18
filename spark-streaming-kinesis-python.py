@@ -8,8 +8,8 @@ from pyspark.sql import SparkSession
 
 sc = SparkContext()
 ssc = StreamingContext(sc, 60)
-streamName = 'shiheng-orders'
-appName = 'shiheng-orders-python' # This will be the DynamoDB Table name.
+streamName = 'orders'
+appName = 'orders-python' # This will be the DynamoDB Table name.
 endpointUrl = "https://kinesis.cn-northwest-1.amazonaws.com.cn"
 regionName = "cn-northwest-1"
 
@@ -31,7 +31,7 @@ def save2s3(rdd):
     rowRdd = rdd.map(lambda w: Row(ordertime=w[0],orderid=w[1],itemid=w[2],orderunits=w[3],address_city=w[4],address_state=w[5],address_zipcode=w[6]))
     df = spark.createDataFrame(rowRdd)
     df.createOrReplaceTempView("df")
-    df.write.partitionBy("ordertime").csv(path="s3n://shiheng-poc/ss-kinesis-python/", mode="append")
+    df.write.partitionBy("ordertime").csv(path="s3n://joeshi-poc/ss-kinesis-python/", mode="append")
     # results = spark.sql("SELECT * FROM df")
     # results.show()
 
