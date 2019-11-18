@@ -35,6 +35,8 @@
 - [x] 通过 s3-dist-cp 将小文件合并成一个大文件
 - [x] Kinesis 原始数据通过 Firehose 落盘到 S3，保留原始数据
 - [x] Hive 创建表，分区
+- [ ] KCL 消费的时候，是否可以 rebalance
+- [ ] Flume 会根据 topic 来进行分，不变得放一台, KCL 
 
 ### 如何使用 Kafka-connect-datagen 产生模拟数据
 
@@ -45,7 +47,6 @@
 
 `worker.properties` 和 `orders.properties` 已经配置好。Order 的格式请参考[orders_schema.avro](orders_schema.avro), 
 里面有一个嵌套 JSON, 需要在后续做铺平操作. 默认情况下会打入 **orders** topic.
-
 
 执行以下脚本即可
 ```shell script
@@ -122,6 +123,11 @@ s3-dist-cp --src=s3://shiheng-poc/ss-kinesis-python/ordertime=2019111316/ \
 --outputManifest=processed-records.gz
 ```
 
+## Tips:
+
+* You MUT create the database for hue `huedb` in external mysql before using [emrConfiguration.json](./emrConfiguration.json)
+
+
 ## KCL 代码消费落盘代码
 
 [brianwwo/kclsample](https://github.com/brianwwo/kclsample)
@@ -132,3 +138,5 @@ s3-dist-cp --src=s3://shiheng-poc/ss-kinesis-python/ordertime=2019111316/ \
 [Example AVRO schema file](https://github.com/confluentinc/kafka-connect-datagen/tree/master/src/main/resources)
 
 [How to do graceful shutdown of spark streaming job](https://medium.com/@manojkumardhakad/how-to-do-graceful-shutdown-of-spark-streaming-job-9c910770349c)
+
+[How to migrate a Hue database from an existing Amazon EMR cluster](https://aws.amazon.com/blogs/big-data/how-to-migrate-a-hue-database-from-an-existing-amazon-emr-cluster/)
