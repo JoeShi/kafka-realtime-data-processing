@@ -76,7 +76,7 @@ Kafka_Access_Security_Group_Id = sg-0215d847878dc26af
 安装 OpenJDK 1.8
 1. 下载 **Confluent Platform**
 1. 安装 **kafka-connect-datagen**, `confluent-hub install confluentinc/kafka-connect-datagen:latest`
-1. 增加 [Kafka 和 ZooKeeper 集群](#Kafka-和-ZooKeeper-集群) 中产生的 安全组 和 IAM Role.
+1. 增加 [Kafka 和 ZooKeeper 集群](#Kafka-和-ZooKeeper-集群) 中产生的 安全组.
 
 ### Kinesis-kafka-connector 实例
 
@@ -86,7 +86,37 @@ Kafka_Access_Security_Group_Id = sg-0215d847878dc26af
 1. 下载 **Confluent Platform using only Confluent Community components**
 1. 编译 [JoeShi/kinesis-kafka-connector](https://github.com/JoeShi/kinesis-kafka-connector), `mvn package`, 
 这将会在 target 目录下生成一个 jar 包，将这个 jar 包拷贝到 `$CONFLUENT_HOME/share/java/kafka/` 目录下
-1. 增加 [Kafka 和 ZooKeeper 集群](#Kafka-和-ZooKeeper-集群) 中产生的 安全组 和 IAM Role.
+1. 增加 [Kafka 和 ZooKeeper 集群](#Kafka-和-ZooKeeper-集群) 中产生的 安全组.
+1. 为其创建 IAM 角色，IAM Policy 如下 ( 其中将 Resource 中的 region，accountID 和 streamName 替换成您的 Kinesis 所处的区域，您账户 ID 和 Kinesis Stream 的名称 ):
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "cloudwatch:PutMetricData",
+            "Resource": "*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "kinesis:PutRecord",
+                "kinesis:PutRecords",
+                "kinesis:DescribeStream"
+            ],
+            "Resource": "arn:aws-cn:kinesis:region:accountID:stream/streamName"
+        }
+    ]
+}
+
+```
+
+* **需要注意的是：** 文档编写时 Kinesis-kafka-connector 这个组件所使用的 KPL 的版本时 0.12.8. KPL 在 0.14.0 及其之后使用 kinesis:ListShards 方法替代了 kinesis:DescribeStream。因此若之后该组件更新，其使用的 KPL 版本大于 0.14.0 的话，请在该 IAM Policy 中将 kinesis:DescribeStream 替换成 kinesis:ListShards。
+
+
 
 [JoeShi/kinesis-kafka-connector](https://github.com/JoeShi/kinesis-kafka-connector) 是原 [awslabs/kinesis-kafka-connector](https://github.com/awslabs/kinesis-kafka-connector) 
 的一个 Folk, 主要完成了以下内容的改写：
@@ -186,6 +216,45 @@ aws kinesis get-records --limit 10 --shard-iterator $SHARD_ITERATOR
 
 [brianwwo/kclsample](https://github.com/brianwwo/kclsample) 提供了该场景下的示例代码，需要修改代码中的 Kinesis stream name; S3 bucket name;
 您也可以根据自己的落盘策略进行定制开发。运行 KCL 和运行一个普通的 Java 程序无异。
+
+KCL 所需要的 IAM Policy 如下 (请将 Resource 部分替换成您的资源所对应的 ARN 名称)：
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "kinesis:GetShardIterator",
+                "kinesis:GetRecords"
+            ],
+            "Resource": [
+                "arn:aws-cn:s3:::bucketName/*",
+                "arn:aws-cn:kinesis:region:accountID:stream/streamName"
+            ]
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "cloudwatch:PutMetricData",
+                "dynamodb:PutItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:DeleteItem",
+                "kinesis:ListShards",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:UpdateItem"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+
+```
 
 ### Spark Streaming (Python) 版本
 
