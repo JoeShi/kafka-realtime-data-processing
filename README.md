@@ -107,7 +107,7 @@ Kafka_Access_Security_Group_Id = sg-0215d847878dc26af
                 "kinesis:PutRecords",
                 "kinesis:DescribeStream"
             ],
-            "Resource": "arn:aws-cn:kinesis:region:accountID:stream/streamName"
+            "Resource": "arn:aws-cn:kinesis:<region>:<accountID>:stream/<streamName>"
         }
     ]
 }
@@ -229,11 +229,12 @@ KCL 所需要的 IAM Policy 如下 (请将 Resource 部分替换成您的资源�
             "Action": [
                 "s3:PutObject",
                 "kinesis:GetShardIterator",
-                "kinesis:GetRecords"
+                "kinesis:GetRecords",
+                "kinesis:ListShards"
             ],
             "Resource": [
-                "arn:aws-cn:s3:::bucketName/*",
-                "arn:aws-cn:kinesis:region:accountID:stream/streamName"
+                "arn:aws-cn:s3:::<bucketName>/*",
+                "arn:aws-cn:kinesis:<region>:<accountID>:stream/<streamName>"
             ]
         },
         {
@@ -247,7 +248,8 @@ KCL 所需要的 IAM Policy 如下 (请将 Resource 部分替换成您的资源�
                 "kinesis:ListShards",
                 "dynamodb:GetItem",
                 "dynamodb:Scan",
-                "dynamodb:UpdateItem"
+                "dynamodb:UpdateItem",
+                "dynamodb:CreateTable"
             ],
             "Resource": "*"
         }
